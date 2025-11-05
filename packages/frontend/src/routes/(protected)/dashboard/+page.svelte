@@ -10,13 +10,19 @@
   let projects = $state<Project[]>([]);
   let isLoadingProjects = $state(false);
   let projectsError = $state("");
+  let hasAttemptedLoad = $state(false);
 
-  onMount(async () => {
-    await loadProjects();
+  $effect(() => {
+    if ($auth.user && !hasAttemptedLoad && !$auth.isLoading) {
+      hasAttemptedLoad = true;
+      loadProjects();
+    }
   });
 
   async function loadProjects() {
-    if (!$auth.user) return;
+    if (!$auth.user) {
+      return;
+    }
 
     isLoadingProjects = true;
     projectsError = "";
@@ -26,7 +32,6 @@
     } catch (error) {
       projectsError =
         error instanceof Error ? error.message : "Failed to load projects";
-      console.error("Failed to load projects:", error);
     } finally {
       isLoadingProjects = false;
     }

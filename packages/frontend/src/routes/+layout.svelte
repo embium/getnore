@@ -9,10 +9,10 @@
 
   let { children } = $props();
 
-  onMount(() => {
-    // Check auth status when app loads (non-blocking)
-    // Don't await this to avoid interfering with navigation
-    auth.initializeAuth();
+  onMount(async () => {
+    // Check auth status when app loads
+    // This is important for direct navigation to work properly
+    await auth.initializeAuth();
   });
   // Pages that don't require authentication
   const publicRoutes = ["/login", "/signup", "/"];
@@ -36,7 +36,7 @@
     <div class="container mx-auto flex h-14 items-center">
       <!-- Simple Logo -->
       <div class="mr-4">
-        <a href="{resolve('/')}]" class="mr-6 flex items-center space-x-2">
+        <a href={resolve("/")} class="mr-6 flex items-center space-x-2">
           <div
             class="h-6 w-6 rounded bg-primary flex items-center justify-center"
           >

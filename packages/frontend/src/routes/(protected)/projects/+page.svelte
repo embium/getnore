@@ -18,7 +18,6 @@
     Calendar,
     Filter,
   } from "lucide-svelte";
-  import { onMount } from "svelte";
   import { resolve } from "$app/paths";
 
   let projects = $state<Project[]>([]);
@@ -26,6 +25,7 @@
   let isLoadingProjects = $state(false);
   let projectsError = $state("");
   let searchQuery = $state("");
+  let hasAttemptedLoad = $state(false);
 
   // Create/Edit Modal State
   let showCreateModal = $state(false);
@@ -44,12 +44,17 @@
   let deletingProject = $state<Project | null>(null);
   let isDeleting = $state(false);
 
-  onMount(async () => {
-    await loadProjects();
+  $effect(() => {
+    if ($auth.user && !hasAttemptedLoad && !$auth.isLoading) {
+      hasAttemptedLoad = true;
+      loadProjects();
+    }
   });
 
   async function loadProjects() {
-    if (!$auth.user) return;
+    if (!$auth.user) {
+      return;
+    }
 
     isLoadingProjects = true;
     projectsError = "";
@@ -104,7 +109,6 @@
 
     try {
       await projectsAPI.createProject({
-        user_email: $auth.user.email,
         name: projectName.trim(),
         description: projectDescription.trim() || undefined,
       });
@@ -136,7 +140,6 @@
       await projectsAPI.updateProject(editingProject.id!, {
         name: projectName.trim(),
         description: projectDescription.trim() || undefined,
-        update_timestamp: Date.now(),
       });
 
       showEditModal = false;
@@ -339,8 +342,8 @@
             {/if}
             <div class="flex items-center text-xs text-muted-foreground">
               <Calendar class="mr-1 h-3 w-3" />
-              {#if project.last_updated}
-                Updated {formatDate(project.last_updated)}
+              {#if project.updated_at}
+                Updated {formatDate(project.updated_at)}
               {:else if project.created_at}
                 Created {formatDate(project.created_at)}
               {/if}

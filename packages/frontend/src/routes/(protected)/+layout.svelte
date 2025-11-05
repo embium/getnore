@@ -9,21 +9,17 @@
   import { onMount } from "svelte";
 
   let { children } = $props();
+  let hasRedirected = $state(false);
 
-  onMount(async () => {
-    // If not already authenticated, check auth status
-    if (!$auth.isAuthenticated && !$auth.isLoading) {
-      await auth.checkAuthStatus();
-    }
-
-    // After auth check, redirect if not authenticated
-    if (!$auth.isAuthenticated) {
+  // Watch for auth state changes and redirect if not authenticated
+  $effect(() => {
+    if (!$auth.isAuthenticated && !$auth.isLoading && !hasRedirected) {
+      hasRedirected = true;
       const currentPath = $page.url.pathname;
       const redirectUrl =
         resolve("/login") + `?redirect=${encodeURIComponent(currentPath)}`;
       // eslint-disable-next-line svelte/no-navigation-without-resolve
       goto(redirectUrl, { replaceState: true });
-      return;
     }
   });
 </script>

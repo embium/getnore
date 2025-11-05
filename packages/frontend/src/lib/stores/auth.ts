@@ -2,7 +2,13 @@ import { writable, derived } from "svelte/store";
 import { browser } from "$app/environment";
 
 export interface User {
+  id: string;
   email: string;
+  fullname?: string;
+  avatar_url?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AuthState {
@@ -27,7 +33,7 @@ function createAuthStore() {
 
     if (storedEmail) {
       try {
-        initialState.user = { email: storedEmail };
+        // Don't set user here, will be fetched from API
         initialState.isAuthenticated = true;
       } catch (e) {
         console.error("Failed to parse stored auth data", e);
@@ -66,15 +72,14 @@ function createAuthStore() {
           });
           localStorage.removeItem(STORAGE_KEY_USER);
         } else {
-          update((state) => ({
-            ...state,
-            user: { email: user.email },
+          set({
+            user: user,
             isAuthenticated: true,
             isLoading: false,
-          }));
+          });
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
+        console.error("Auth initialization failed:", error);
         // On error, clear auth state
         set({
           user: null,
@@ -120,19 +125,16 @@ function createAuthStore() {
     checkAuthStatus: async () => {
       if (!browser) return;
 
-      // Don't set loading here - let the component handle loading states
       try {
         const { authAPI } = await import("$lib/api/auth");
         const user = await authAPI.checkSession();
 
         if (user) {
-          const newState: AuthState = {
+          set({
             user,
             isAuthenticated: true,
             isLoading: false,
-          };
-
-          set(newState);
+          });
 
           // Update localStorage
           localStorage.setItem(STORAGE_KEY_USER, user.email);
@@ -145,7 +147,6 @@ function createAuthStore() {
 
           localStorage.removeItem(STORAGE_KEY_USER);
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         set({
           user: null,

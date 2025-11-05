@@ -2,10 +2,9 @@
   import { auth } from "$lib/stores/auth";
   import { authAPI } from "$lib/api/auth";
   import { goto } from "$app/navigation";
-  import { resolve } from "$app/paths";
   import { Button } from "$lib/components/ui/button";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-  import { Avatar, AvatarFallback } from "$lib/components/ui/avatar";
+  import { Avatar, AvatarFallback, AvatarImage } from "$lib/components/ui/avatar";
   import { Home, FolderOpen, Settings, LogOut } from "lucide-svelte";
 
   let isLoggingOut = $state(false);
@@ -17,7 +16,7 @@
     try {
       await authAPI.logout();
       auth.clearUser();
-      await goto(resolve("/login"));
+      await goto("/login");
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
@@ -25,8 +24,15 @@
     }
   }
 
-  function getInitials(email: string): string {
-    return email.charAt(0).toUpperCase();
+  function getInitials(fullname: string): string {
+    if (!fullname) return "U";
+    const names = fullname.trim().split(" ");
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  }
+
+  function getDisplayName(): string {
+    return $auth.user?.fullname || "User";
   }
 </script>
 
@@ -35,17 +41,20 @@
     <DropdownMenu.Trigger>
       <Button variant="ghost" class="relative h-8 w-8 rounded-full">
         <Avatar class="h-8 w-8">
-          <AvatarFallback class="bg-primary text-primary-foreground">
-            {getInitials($auth.user.email)}
-          </AvatarFallback>
-        </Avatar>
+        {#if $auth.user?.avatar_url}
+          <AvatarImage src={$auth.user.avatar_url} alt={getDisplayName()} />
+        {/if}
+        <AvatarFallback class="bg-primary text-primary-foreground">
+          {getInitials($auth.user?.fullname || "")}
+        </AvatarFallback>
+      </Avatar>
       </Button>
     </DropdownMenu.Trigger>
 
     <DropdownMenu.Content class="w-56" align="end">
       <DropdownMenu.Label class="font-normal">
         <div class="flex flex-col space-y-1">
-          <p class="text-sm font-medium leading-none">Account</p>
+          <p class="text-sm font-medium leading-none">{getDisplayName()}</p>
           <p class="text-xs leading-none text-muted-foreground">
             {$auth.user.email}
           </p>
@@ -56,14 +65,14 @@
 
       <DropdownMenu.Group>
         <DropdownMenu.Item class="cursor-pointer">
-          <a href={resolve("/dashboard")} class="flex items-center w-full">
+          <a href="/dashboard" class="flex items-center w-full">
             <Home class="mr-2 h-4 w-4" />
             <span>Dashboard</span>
           </a>
         </DropdownMenu.Item>
 
         <DropdownMenu.Item class="cursor-pointer">
-          <a href={resolve("/projects")} class="flex items-center w-full">
+          <a href="/projects" class="flex items-center w-full">
             <FolderOpen class="mr-2 h-4 w-4" />
             <span>Projects</span>
           </a>
@@ -74,7 +83,7 @@
 
       <DropdownMenu.Group>
         <DropdownMenu.Item class="cursor-pointer">
-          <a href={resolve("/account")} class="flex items-center w-full">
+          <a href="/account" class="flex items-center w-full">
             <Settings class="mr-2 h-4 w-4" />
             <span>Settings</span>
           </a>

@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev:docker": "docker compose -f docker-compose.yaml up db",
+    "dev:docker": "docker compose -f docker-compose.yaml up db redis",
     "dev:packages": "pnpm --parallel run dev",
     "dev": "run-p dev:*",
     "docker:up": "docker compose -f docker-compose.yaml up",

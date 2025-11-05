@@ -1,0 +1,7 @@
+pub mod oauth_provider_repo;
+pub mod permission_repo;
+pub mod redis_repo;
+pub mod role_repo;
+pub mod user_repo;
+pub mod user_session_repo;
+pub mod project_repo;

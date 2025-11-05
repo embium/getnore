@@ -108,7 +108,6 @@
       const updatedProject = await projectsAPI.updateProject(project.id, {
         name: projectName.trim(),
         description: projectDescription.trim() || undefined,
-        update_timestamp: Date.now(),
       });
 
       project = updatedProject;
@@ -375,7 +374,7 @@
                   </div>
                 {/if}
 
-                {#if project.last_updated}
+                {#if project.updated_at}
                   <div>
                     <h3
                       class="text-sm font-medium text-muted-foreground mb-2 flex items-center"
@@ -383,7 +382,7 @@
                       <Activity class="mr-2 h-4 w-4" />
                       Last Updated
                     </h3>
-                    <p class="text-sm">{formatDate(project.last_updated)}</p>
+                    <p class="text-sm">{formatDate(project.updated_at)}</p>
                   </div>
                 {/if}
               </div>

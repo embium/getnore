@@ -1,91 +1,27 @@
-use axum::{
-    routing::{post, get, put, delete},
-    extract::{State, DefaultBodyLimit, Request},
-    http::StatusCode,
-    response::IntoResponse,
-    Router,
-    ServiceExt,
-};
-use tower_sessions::{Expiry, SessionManagerLayer, cookie::time::Duration};
-use std::{sync::Arc};
-use sqlx::migrate;
-use tower_sessions_sqlx_store::PostgresStore;
-use tower::Layer;
-use tower_http::{
-    compression::CompressionLayer,
-    normalize_path::NormalizePathLayer,
-    services::{ ServeDir, ServeFile },
-};
+use std::sync::Arc;
 
-#[macro_use]
-extern crate lazy_static;
-
-mod store;
-mod rate_limit;
-mod config;
-mod auth;
-mod projects;
-mod account;
+use envconfig::Envconfig;
+use backend::infra::{config::AppConfig, server::ServerBuilder};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() {
-    dotenvy::from_filename(".env").ok();
+    // load env variables
+    dotenvy::dotenv().ok();
 
-    let db_url = std::env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
-    let user_password_db = store::Store::new(&db_url).await;
+    // populate env value into our config
+    let cfg = AppConfig::init_from_env().expect("failed to load config from env");
 
-    migrate!()
-        .run(&user_password_db.connection)
-        .await
-        .expect("Failed to run migrations");
+    // init tracing for logging
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "rust_ddd_oauth_casbin=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
-    let shared_store = Arc::new(user_password_db);
+    let server = ServerBuilder::new(Arc::new(cfg));
 
-    let memory_store = PostgresStore::new(shared_store.connection.clone());
-    let session_layer = SessionManagerLayer::new(memory_store)
-        .with_secure(false)
-        .with_expiry(Expiry::OnInactivity(Duration::days(30)));
-
-    let api_routes = Router::new()
-        .route("/login", post(auth::routes::login))
-        .route("/logout", post(auth::routes::logout))
-        .route("/me", get(auth::routes::get_current_user))
-        .route("/signup", post(auth::routes::add_user))
-        .route("/projects", post(projects::routes::create_project_handler))
-        .route("/projects", get(projects::routes::list_project_handler))
-        .route("/projects/{id}", get(projects::routes::get_project_by_id_handler))
-        .route("/projects/{id}", put(projects::routes::update_project_handler))
-        .route("/projects/{id}", delete(projects::routes::delete_project_handler))
-        .route("/account", get(account::routes::get_account_settings_handler))
-        .route("/account", put(account::routes::edit_account_settings_handler))
-        .route("/healthz", get(health_check))
-        .with_state(shared_store)
-        .layer(session_layer);
-
-    let index = format!("{}{}", config::FRONTEND_PATH.to_string(), "/index.html");
-    let serve_dir = ServeDir::new(config::FRONTEND_PATH.to_string()).not_found_service(
-        ServeFile::new(index)
-    );
-    let app = Router::new()
-        .nest("/api", api_routes)
-        .fallback_service(serve_dir)
-        // Disabled for now, as svelte inlines scripts
-        // .layer(middleware::from_fn(csp::add_csp_header))
-        .layer(DefaultBodyLimit::max(*config::LIMIT))
-        .layer(CompressionLayer::new().br(true).deflate(true).gzip(true).zstd(true));
-
-    let app = NormalizePathLayer::trim_trailing_slash().layer(app);
-
-    let listener = tokio::net::TcpListener::bind(config::LISTEN_ADDR.to_string()).await.unwrap();
-    println!("listening on {}", listener.local_addr().unwrap());
-    axum::serve(listener, ServiceExt::<Request>::into_make_service(app)).await.unwrap();
-}
-
-async fn health_check(State(store): State<Arc<store::Store>>) -> impl IntoResponse {
-    if let Err(e) = sqlx::query("SELECT 1").execute(&store.connection).await {
-        eprintln!("Health check DB error: {:?}", e);
-        return StatusCode::SERVICE_UNAVAILABLE;
-    }
-    StatusCode::OK
+    server.run().await;
 }
