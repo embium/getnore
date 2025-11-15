@@ -7,7 +7,7 @@
     "docker:build": "docker compose -f docker-compose.yaml build",
     "test:server": "run-s docker:up",
     "test:prepare": "run-p build docker:build",
-    "build": "pnpm run --recursive --filter=!@juli/backend build"
+    "build": "pnpm run --recursive --filter=!@nore/backend build"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",
