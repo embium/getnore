@@ -1,6 +1,6 @@
-import { browser } from '$app/environment';
-import { writable, type Writable } from 'svelte/store';
-import { authAPI, type User } from '$lib/api/auth';
+import { browser } from "$app/environment";
+import { writable, type Writable } from "svelte/store";
+import { authAPI, type User } from "$lib/api/auth";
 
 type AuthState = {
   isAuthenticated: boolean;
@@ -40,8 +40,12 @@ class AuthStore {
       try {
         await authAPI.refreshToken();
         const user = await authAPI.getCurrentUser();
-        user ? this.setUser(user) : this.clearUser();
-        if (user) this.startMonitor();
+        if (user) {
+          this.setUser(user);
+          this.startMonitor();
+        } else {
+          this.clearUser();
+        }
       } catch {
         this.clearUser();
       }

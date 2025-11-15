@@ -10,5 +10,5 @@ pub async fn establish_connection(db_url: &str) -> PgPool {
         .max_lifetime(Duration::from_secs(8))
         .connect(db_url)
         .await
-        .expect("failed to connect to database")
+        .expect("Failed to connect to database")
 }

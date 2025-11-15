@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
     return redirect(302, "/login");
   }
 
-  const projectsAPI = new ProjectsAPI(cookieHeader);
+  const projectsAPI = new ProjectsAPI(cookieHeader, "server");
   const projects = await projectsAPI.listProjects();
 
   return {

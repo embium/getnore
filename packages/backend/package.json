@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@boilerplate/backend",
+  "name": "@nore/backend",
   "scripts": {
     "dev": "cargo watch -x \"run --bin backend\"",
     "build": "cargo build --release",

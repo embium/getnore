@@ -34,4 +34,7 @@ pub struct AppConfig {
 
     #[envconfig(from = "SUPER_KEY")]
     pub super_key: String,
+
+    #[envconfig(from = "COOKIE_DOMAIN", default = "")]
+    pub cookie_domain: String,
 }

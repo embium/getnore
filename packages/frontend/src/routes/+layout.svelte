@@ -21,11 +21,8 @@
 </script>
 
 <svelte:head>
-  <title>SaaS Boilerplate</title>
-  <meta
-    name="description"
-    content="A modern SaaS boilerplate built with SvelteKit and Rust"
-  />
+  <title>Nore</title>
+  <meta name="description" content="A way to manage your projects" />
 </svelte:head>
 
 <div class="min-h-screen bg-background flex flex-col">
@@ -42,7 +39,7 @@
           >
             <span class="text-primary-foreground font-bold text-sm">S</span>
           </div>
-          <span class="font-bold">SaaS Boilerplate</span>
+          <span class="font-bold">Nore</span>
         </a>
       </div>
 
@@ -82,54 +79,30 @@
   <!-- Footer -->
   <footer class="border-t shrink-0">
     <div
-      class="container mx-auto flex flex-col items-center justify-center gap-4 py-10 md:h-24 md:flex-row md:py-0"
+      class="container mx-auto flex flex-col gap-4 px-8 h-10 items-center justify-center"
     >
-      <div
-        class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0"
+      <p
+        class="text-center text-sm leading-loose text-muted-foreground md:text-left"
       >
-        <p
-          class="text-center text-sm leading-loose text-muted-foreground md:text-left"
-        >
-          Built with
-          <a
-            href="https://kit.sveltekit.dev"
-            target="_blank"
-            rel="noreferrer"
-            class="font-medium underline underline-offset-4"
-          >
-            SvelteKit
-          </a>
-          and
-          <a
-            href="https://www.rust-lang.org"
-            target="_blank"
-            rel="noreferrer"
-            class="font-medium underline underline-offset-4"
-          >
-            Rust
-          </a>
-        </p>
-      </div>
-      <div class="flex items-center space-x-4">
+        Built with
         <a
-          href="#"
-          class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          href="https://kit.sveltekit.dev"
+          target="_blank"
+          rel="noreferrer"
+          class="font-medium underline underline-offset-4"
         >
-          Privacy
+          SvelteKit
         </a>
+        and
         <a
-          href="#"
-          class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          href="https://www.rust-lang.org"
+          target="_blank"
+          rel="noreferrer"
+          class="font-medium underline underline-offset-4"
         >
-          Terms
+          Rust
         </a>
-        <a
-          href="#"
-          class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Support
-        </a>
-      </div>
+      </p>
     </div>
   </footer>
 </div>

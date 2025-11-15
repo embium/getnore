@@ -21,6 +21,7 @@ use crate::{
 pub fn setup_user_routes(app_state: Arc<AppState>) -> Router<Arc<AppState>> {
     Router::new()
         .route("/settings", get(get_user_settings).put(update_user_settings))
+        // Authentication layer (runs first)
         .layer(middleware::from_fn_with_state(app_state.clone(), is_authorized))
 }
 
@@ -29,6 +30,9 @@ pub async fn update_user_settings(
     Extension(current_user): Extension<UserFull>,
     Json(update_dto): Json<UserSettingsUpdateDto>,
 ) -> Result<SuccessResponse<UserSettingsDto>, AppError> {
+    // Check authorization
+    app_state.rbac.check_access(&current_user.roles, "user_settings", "write").await?;
+    
     let updated_user = app_state
         .uc
         .user
@@ -43,6 +47,9 @@ pub async fn get_user_settings(
     State(app_state): State<Arc<AppState>>,
     Extension(current_user): Extension<UserFull>,
 ) -> Result<SuccessResponse<UserSettingsDto>, AppError> {
+    // Check authorization
+    app_state.rbac.check_access(&current_user.roles, "user_settings", "read").await?;
+    
     let user_settings = app_state
         .uc
         .user

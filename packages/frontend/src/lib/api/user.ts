@@ -19,20 +19,42 @@ export interface UserUpdateRequest {
   new_password?: string;
 }
 
-class UserApi {
+export class UsersAPI {
+  cookieHeader?: string;
+  calledFrom?: string;
+
+  constructor(cookieHeader?: string, calledFrom?: string) {
+    this.cookieHeader = cookieHeader;
+    this.calledFrom = calledFrom;
+  }
+
   async getUserSettings(): Promise<UserSettings> {
-    const response = await makeRequest("/api/v1/user/settings", {
-      method: "GET",
-    });
+    const response = await makeRequest(
+      "/v1/user/settings",
+      {
+        method: "GET",
+        headers: {
+          Cookie: this.cookieHeader || "",
+        },
+      },
+      this.calledFrom,
+    );
     return response.data;
   }
 
   async updateUserSettings(updateRequest: UserUpdateRequest): Promise<void> {
-    await makeRequest("/api/v1/user/settings", {
-      method: "PUT",
-      body: JSON.stringify(updateRequest),
-    });
+    await makeRequest(
+      "/v1/user/settings",
+      {
+        method: "PUT",
+        body: JSON.stringify(updateRequest),
+        headers: {
+          Cookie: this.cookieHeader || "",
+        },
+      },
+      this.calledFrom,
+    );
   }
 }
 
-export const userAPI = new UserApi();
+export const usersAPI = new UsersAPI();

@@ -15,6 +15,7 @@ use crate::{
         dto::auth::{
             email_request::{ EmailLoginRequest, EmailRegisterRequest },
             oauth2_request::Oauth2Request,
+            token_response::TokenResponse,
         },
         state::AppState,
     },
@@ -80,7 +81,13 @@ pub async fn handle_oauth2_callback(
         provider_cookie = provider_cookie.secure(true);
     }
 
-    let mut resp = SuccessResponse::<u16>::with_code(200).into_response();
+    let response = TokenResponse {
+        access_token,
+        refresh_token,
+        provider,
+    };
+
+    let mut resp = SuccessResponse::with_data(200, response).into_response();
 
     resp.headers_mut().append(header::SET_COOKIE, access_cookie.to_string().parse()?);
     resp.headers_mut().append(header::SET_COOKIE, refresh_cookie.to_string().parse()?);
@@ -147,7 +154,14 @@ pub async fn login_with_email(
         provider_cookie = provider_cookie.secure(true);
     }
 
-    let mut resp = SuccessResponse::<u16>::with_code(200).into_response();
+
+    let response = TokenResponse {
+        access_token,
+        refresh_token,
+        provider: EMAIL_PROVIDER.to_string(),
+    };
+
+    let mut resp = SuccessResponse::with_data(200, response).into_response();
 
     resp.headers_mut().append(header::SET_COOKIE, access_cookie.to_string().parse()?);
     resp.headers_mut().append(header::SET_COOKIE, refresh_cookie.to_string().parse()?);
@@ -199,7 +213,13 @@ pub async fn refresh_token(
         refresh_cookie = refresh_cookie.secure(true);
     }
 
-    let mut resp = SuccessResponse::<u16>::with_code(200).into_response();
+    let response = TokenResponse {
+        access_token,
+        refresh_token,
+        provider,
+    };
+
+    let mut resp = SuccessResponse::with_data(200, response).into_response();
 
     resp.headers_mut().append(header::SET_COOKIE, access_cookie.to_string().parse()?);
     resp.headers_mut().append(header::SET_COOKIE, refresh_cookie.to_string().parse()?);

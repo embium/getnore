@@ -23,6 +23,7 @@ argon2 = "0.5.3"
 async-trait = "0.1.89"
 jsonwebtoken = { version = "10.1.0", features = ["aws_lc_rs"] }
 bb8-redis = "0.24.0"
+redis = {version = "0.32.7", features = ["tls-native-tls", "tokio-native-tls-comp"]}
 axum-extra = { version = "0.12.1", features = ["cookie"]}
 time = "0.3.44"
 slug = "0.1.6"

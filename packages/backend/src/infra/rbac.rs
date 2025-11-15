@@ -45,25 +45,23 @@ impl Rbac {
 
         let mut enforcer = self.enforcer.write().await;
 
-        // Expected policies
+                // Expected policies
         let expected_policies = vec![
-            vec!["user".to_owned(), "public".to_owned(), "read".to_owned()],
-            // Commented out, meaning it should be removed if it exists
-            vec!["user".to_owned(), "public".to_owned(), "write".to_owned()],
-            vec![
-                "root".to_owned(),
-                "user-management".to_owned(),
-                "read".to_owned(),
-            ],
-            vec![
-                "root".to_owned(),
-                "user-management".to_owned(),
-                "write".to_owned(),
-            ],
+            vec!["user".to_owned(), "projects".to_owned(), "read".to_owned()],
+            vec!["user".to_owned(), "projects".to_owned(), "write".to_owned()],
+            vec!["user".to_owned(), "projects".to_owned(), "delete".to_owned()],
+            vec!["user".to_owned(), "user-settings".to_owned(), "read".to_owned()],
+            vec!["user".to_owned(), "user-settings".to_owned(), "write".to_owned()],
+
+            // Admin permissions (inherits from user via role hierarchy)
+            vec!["admin".to_owned(), "user-management".to_owned(), "read".to_owned()],
+            vec!["admin".to_owned(), "user-management".to_owned(), "write".to_owned()],
+            vec!["admin".to_owned(), "all-resources".to_owned(), "read".to_owned()],
+            vec!["admin".to_owned(), "all-resources".to_owned(), "write".to_owned()],
         ];
 
         // Expected role hierarchies
-        let expected_roles = vec![("root", "user")];
+        let expected_roles = vec![("admin", "user")];
 
         // Get current policies from the enforcer
         let current_policies = enforcer.get_policy();

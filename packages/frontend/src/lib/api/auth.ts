@@ -1,4 +1,4 @@
-import { makeRequest } from './request';
+import { makeRequest } from "./request";
 
 export interface LoginRequest {
   email: string;
@@ -24,67 +24,83 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  provider?: string;
+}
+
 export class AuthAPI {
   cookieHeader?: string;
+  calledFrom?: string;
 
-  constructor(cookieHeader?: string) {
+  constructor(cookieHeader?: string, calledFrom?: string) {
     this.cookieHeader = cookieHeader;
+    this.calledFrom = calledFrom;
   }
 
   async login(credentials: LoginRequest): Promise<User | null> {
-    const response = await makeRequest('/oauth/email/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-      headers: {
-        Cookie: this.cookieHeader || '',
+    const response = await makeRequest(
+      "/oauth/email/login",
+      {
+        method: "POST",
+        body: JSON.stringify(credentials),
+        headers: {
+          Cookie: this.cookieHeader || "",
+        },
       },
-    });
+      this.calledFrom,
+    );
 
     if (response?.success === false) {
-      throw new Error(response?.message || 'Login failed');
+      throw new Error(response?.message || "Login failed");
     }
+
     return await this.ensureSession();
   }
 
   async signup(userData: SignupRequest): Promise<void> {
-    const response = await makeRequest('/oauth/email/register', {
-      method: 'POST',
+    const response = await makeRequest("/oauth/email/register", {
+      method: "POST",
       body: JSON.stringify(userData),
       headers: {
-        Cookie: this.cookieHeader || '',
+        Cookie: this.cookieHeader || "",
       },
     });
 
     if (response?.success === false) {
-      throw new Error(response?.message || 'Signup failed');
+      throw new Error(response?.message || "Signup failed");
     }
   }
 
   async logout(): Promise<void> {
-    await makeRequest('/api/v1/auth/logout', {
-      method: 'DELETE',
+    await makeRequest("/v1/auth/logout", {
+      method: "DELETE",
       headers: {
-        Cookie: this.cookieHeader || '',
+        Cookie: this.cookieHeader || "",
       },
     });
   }
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      const response = await makeRequest('/api/v1/auth/current-user', {
-        method: 'GET',
-        headers: {
-          Cookie: this.cookieHeader || '',
+      const response = await makeRequest(
+        "/v1/auth/current-user",
+        {
+          method: "GET",
+          headers: {
+            Cookie: this.cookieHeader || "",
+          },
         },
-      });
+        this.calledFrom,
+      );
 
       if (response && response.data) {
         const user = response.data as User;
         return user;
       }
       return null;
-    } catch (error) {
-      console.error('Failed to get current user:', error);
+    } catch {
       return null;
     }
   }
@@ -95,18 +111,18 @@ export class AuthAPI {
 
   // OAuth functionality
   async getGoogleAuthUrl(): Promise<string> {
-    const response = await makeRequest('/oauth/google/get-url', {
-      method: 'GET',
+    const response = await makeRequest("/oauth/google/get-url", {
+      method: "GET",
     });
-    return response?.data || '';
+    return response?.data || "";
   }
 
   async handleGoogleCallback(code: string): Promise<User | null> {
     await makeRequest(
       `/oauth/google/callback?code=${encodeURIComponent(code)}`,
       {
-        method: 'GET',
-      }
+        method: "GET",
+      },
     );
 
     // Ensure user is available after successful OAuth
@@ -115,14 +131,14 @@ export class AuthAPI {
 
   async refreshToken(): Promise<void> {
     try {
-      await makeRequest('/oauth/refresh-token', {
-        method: 'GET',
+      await makeRequest("/oauth/refresh-token", {
+        method: "GET",
         headers: {
-          Cookie: this.cookieHeader || '',
+          Cookie: this.cookieHeader || "",
         },
       });
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error("Token refresh failed:", error);
       throw error;
     }
   }

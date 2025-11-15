@@ -1,7 +1,11 @@
 <script lang="ts">
+  import {
+    usersAPI,
+    type UserUpdateRequest,
+    type UserSettings,
+  } from "$lib/api/user";
+  import { authAPI } from "$lib/api/auth";
   import { auth } from "$lib/stores/auth";
-  import { onMount } from "svelte";
-  import { userAPI, type UserUpdateRequest } from "$lib/api/user";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
@@ -16,9 +20,17 @@
   import Icon from "@iconify/svelte";
   import LoadingSpinner from "$lib/components/LoadingSpinner.svelte";
 
-  let userFullName: string | null = $state("");
-  let userEmail = $state("");
-  let userProvider = $state("");
+  interface DataProps {
+    data: {
+      user: UserSettings | null;
+    };
+  }
+
+  let { data }: DataProps = $props();
+
+  let userFullName: string | null = $state(data.user?.fullname || "");
+  let userEmail = $state(data.user?.email || "");
+  let userProvider = $state(data.user?.provider || "");
   let currentPassword = $state("");
   let newPassword = $state("");
   let confirmNewPassword = $state("");
@@ -28,35 +40,6 @@
   let userError = $state("");
   let successMessage = $state("");
   let changePassword = $state(false);
-  let hasAttemptedLoad = false;
-
-  $effect(() => {
-    if ($auth.user && !hasAttemptedLoad && !$auth.isLoading) {
-      hasAttemptedLoad = true;
-      loadUser();
-    }
-  });
-
-  async function loadUser() {
-    if (!$auth.user) return;
-
-    isLoadingUser = true;
-    userError = "";
-
-    try {
-      const user = await userAPI.getUserSettings();
-      console.log(user);
-      userFullName = user.fullname;
-      userEmail = user.email;
-      userProvider = user.provider;
-    } catch (error) {
-      userError =
-        error instanceof Error ? error.message : "Failed to load user";
-      console.error("Failed to load user:", error);
-    } finally {
-      isLoadingUser = false;
-    }
-  }
 
   async function handleUpdateAccount(event: Event) {
     event.preventDefault();
@@ -99,7 +82,14 @@
         updateRequest.new_password = newPassword;
       }
 
-      await userAPI.updateUserSettings(updateRequest);
+      await usersAPI.updateUserSettings(updateRequest);
+
+      const updatedUser = await authAPI.getCurrentUser();
+      if (updatedUser) {
+        updatedUser.fullname = userFullName || "";
+        updatedUser.email = userEmail;
+        auth.setUser(updatedUser);
+      }
 
       successMessage = changePassword
         ? "User settings and password updated successfully!"

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use axum::{
     http::{
-        header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
+        header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderName},
         HeaderValue, Method
     },
     extract::Request,
@@ -14,10 +14,6 @@ use sqlx_adapter::SqlxAdapter;
 use tokio::sync::RwLock;
 use tower_http::cors::{ AllowOrigin, CorsLayer };
 use tracing::{ debug, info };
-use tower::Layer;
-use tower_http::{
-    normalize_path::NormalizePathLayer
-};
 
 use crate::{
     application::state::AppState,
@@ -69,13 +65,10 @@ impl ServerBuilder {
 
         let api_routes = self.setup_api_router(app_state.clone());
 
-        let app_router = Router::new()
+        let app = api_routes
             .nest("/oauth", setup_public_oauth_handler())
-            .nest("/api", api_routes)
             .layer(self.setup_cors())
             .with_state(app_state);
-
-        let app = NormalizePathLayer::trim_trailing_slash().layer(app_router);
 
         // Run Server
         let addr = format!("0.0.0.0:{}", &self.cfg.app_port);
@@ -104,6 +97,8 @@ impl ServerBuilder {
             .filter_map(|origin| origin.parse::<HeaderValue>().ok())
             .collect();
 
+        println!("CORS allowed origins: {:?}", allowed_origins);
+
         let allow_origin = AllowOrigin::list(allowed_origins);
 
         CorsLayer::new()
@@ -116,7 +111,8 @@ impl ServerBuilder {
                 Method::OPTIONS,
             ])
             .allow_credentials(true)
-            .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE])
+            .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE, HeaderName::from_static("x-csrf-token")])
+            .expose_headers([HeaderName::from_static("set-cookie")])
     }
 
     async fn setup_casbin(&self) -> Enforcer {

@@ -15,6 +15,7 @@ pub struct Project {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ProjectWithOwnerEmail {
     pub id: String,
+    pub user_id: Option<String>,
     pub name: String,
     pub description: Option<String>,
     pub created_at: chrono::DateTime<chrono::Utc>,

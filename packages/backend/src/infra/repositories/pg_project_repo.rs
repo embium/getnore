@@ -25,7 +25,7 @@ impl ProjectRepository for PgProjectRepository {
     }
 
     async fn find_by_id_and_user_id(&self, id: &str, user_id: &str) -> Result<ProjectWithOwnerEmail, AppError> {
-      let project = sqlx::query_as!(ProjectWithOwnerEmail, "SELECT p.id, p.name, p.description, p.created_at, p.updated_at, p.deleted_at, u.email as user_email FROM projects p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = $1 AND p.user_id = $2 AND p.deleted_at IS NULL", id, user_id)
+      let project = sqlx::query_as!(ProjectWithOwnerEmail, "SELECT p.id, p.user_id, p.name, p.description, p.created_at, p.updated_at, p.deleted_at, u.email as user_email FROM projects p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = $1 AND p.user_id = $2 AND p.deleted_at IS NULL", id, user_id)
           .fetch_one(&self.pool)
           .await?;
 
@@ -51,7 +51,7 @@ impl ProjectRepository for PgProjectRepository {
     async fn update(&self, id: &str, user_id: &str, entity: Project) -> Result<ProjectWithOwnerEmail, AppError> {
         let project = sqlx::query_as!(
             ProjectWithOwnerEmail,
-            "UPDATE projects p SET name = $1, description = $2, updated_at = NOW() FROM users u WHERE p.id = $3 AND p.user_id = $4 AND u.id = p.user_id RETURNING p.id, p.name, p.description, p.created_at, p.updated_at, p.deleted_at, u.email as user_email",
+            "UPDATE projects p SET name = $1, description = $2, updated_at = NOW() FROM users u WHERE p.id = $3 AND p.user_id = $4 AND u.id = p.user_id RETURNING p.id, p.user_id, p.name, p.description, p.created_at, p.updated_at, p.deleted_at, u.email as user_email",
             entity.name,
             entity.description,
             id,

@@ -37,7 +37,7 @@ impl UpdateUserSettingsUseCase {
           }
         }
 
-        if let Some(current_password) = update_dto.current_password && let Some(new_password) = update_dto.new_password {
+        if let (Some(current_password), Some(new_password)) = (update_dto.current_password, update_dto.new_password) {
           if verify_password(user.password_hash.as_ref().unwrap(), current_password.as_bytes()).is_ok() {
             let password_hash = hash_password(new_password.as_bytes()).unwrap();
             user.change_password(Some(password_hash));

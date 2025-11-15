@@ -1,4 +1,4 @@
-import { makeRequest } from './request';
+import { makeRequest } from "./request";
 
 export interface Project {
   id?: string;
@@ -21,59 +21,81 @@ export interface UpdateProject {
 
 export class ProjectsAPI {
   cookieHeader?: string;
+  calledFrom?: string;
 
-  constructor(cookieHeader?: string) {
+  constructor(cookieHeader?: string, calledFrom?: string) {
     this.cookieHeader = cookieHeader;
+    this.calledFrom = calledFrom;
   }
 
   async createProject(project: CreateProject): Promise<void> {
-    await makeRequest('/api/v1/projects', {
-      method: 'POST',
-      body: JSON.stringify(project),
-      headers: {
-        Cookie: this.cookieHeader || '',
+    await makeRequest(
+      "/v1/projects",
+      {
+        method: "POST",
+        body: JSON.stringify(project),
+        headers: {
+          Cookie: this.cookieHeader || "",
+        },
       },
-    });
+      this.calledFrom,
+    );
   }
 
   async listProjects(): Promise<Project[]> {
-    const response = await makeRequest('/api/v1/projects', {
-      method: 'GET',
-      headers: {
-        Cookie: this.cookieHeader || '',
+    const response = await makeRequest(
+      "/v1/projects",
+      {
+        method: "GET",
+        headers: {
+          Cookie: this.cookieHeader || "",
+        },
       },
-    });
+      this.calledFrom,
+    );
     return response.data || [];
   }
 
   async getProject(id: string): Promise<Project> {
-    const response = await makeRequest(`/api/v1/projects/${id}`, {
-      method: 'GET',
-      headers: {
-        Cookie: this.cookieHeader || '',
+    const response = await makeRequest(
+      `/v1/projects/${id}`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: this.cookieHeader || "",
+        },
       },
-    });
+      this.calledFrom,
+    );
     return response.data;
   }
 
   async updateProject(id: string, update: UpdateProject): Promise<Project> {
-    const response = await makeRequest(`/api/v1/projects/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(update),
-      headers: {
-        Cookie: this.cookieHeader || '',
+    const response = await makeRequest(
+      `/v1/projects/${id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(update),
+        headers: {
+          Cookie: this.cookieHeader || "",
+        },
       },
-    });
+      this.calledFrom,
+    );
     return response.data;
   }
 
   async deleteProject(id: string): Promise<void> {
-    await makeRequest(`/api/v1/projects/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Cookie: this.cookieHeader || '',
+    await makeRequest(
+      `/v1/projects/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Cookie: this.cookieHeader || "",
+        },
       },
-    });
+      this.calledFrom,
+    );
   }
 }
 

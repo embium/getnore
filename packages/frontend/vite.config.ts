@@ -9,6 +9,7 @@ export default defineConfig({
   server: {
     port,
     proxy: { "/api": "http://localhost:8000" },
+    host: "0.0.0.0",
   },
   preview: { port },
   plugins: [tailwindcss(), sveltekit()],

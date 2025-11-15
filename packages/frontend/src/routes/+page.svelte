@@ -11,9 +11,6 @@
     Github,
     Star,
   } from "lucide-svelte";
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
-  import { resolve } from "$app/paths";
 
   const features = [
     {

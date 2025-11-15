@@ -85,8 +85,6 @@
       if (googleAuthUrl) {
         // Redirect to Google OAuth
         window.location.href = googleAuthUrl;
-      } else {
-        throw new Error("Failed to get Google authentication URL");
       }
     } catch (err) {
       error = err instanceof Error ? err.message : "Google login failed";
