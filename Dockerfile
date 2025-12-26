@@ -1,5 +1,5 @@
 # STAGE 1: Build the Rust Backend (No changes)
-FROM rust:latest as backend
+FROM rust:alpine as backend
 WORKDIR /app
 RUN apk add --no-cache libc-dev openssl-dev alpine-sdk
 COPY ./packages/backend ./packages/backend
