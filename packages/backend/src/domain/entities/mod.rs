@@ -5,3 +5,4 @@ pub mod user_oauth_provider;
 pub mod user_role;
 pub mod user_session;
 pub mod project;
+pub mod billing;

@@ -5,3 +5,4 @@ pub mod role_repo;
 pub mod user_repo;
 pub mod user_session_repo;
 pub mod project_repo;
+pub mod billing_repo;

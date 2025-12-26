@@ -14,6 +14,7 @@ use sqlx_adapter::SqlxAdapter;
 use tokio::sync::RwLock;
 use tower_http::cors::{ AllowOrigin, CorsLayer };
 use tracing::{ debug, info };
+use stripe::Client;
 
 use crate::{
     application::state::AppState,
@@ -26,6 +27,8 @@ use crate::{
         super_handler::setup_super_handler,
         project_handler::setup_project_routes,
         user_handler::setup_user_routes,
+        stripe_webhook_handler::setup_stripe_routes,
+        billing_handler::setup_billing_routes
     },
 };
 
@@ -57,13 +60,16 @@ impl ServerBuilder {
         // casbin enforcer
         let enforcer = Arc::new(RwLock::new(self.setup_casbin().await));
 
+        let stripe_client = Client::new(&self.cfg.stripe_secret_key);
+
         // setup roles & permissions casbin rbac
         let rbac = Arc::new(Rbac::new(enforcer));
         // rbac.setup_roles_and_permissions().await; // not used anymore
 
-        let app_state = Arc::new(AppState::new(self.cfg.clone(), db_pool, redis_pool, rbac));
+        let app_state = Arc::new(AppState::new(self.cfg.clone(), db_pool, redis_pool, rbac, stripe_client));
 
         let api_routes = self.setup_api_router(app_state.clone());
+
 
         let app = api_routes
             .nest("/oauth", setup_public_oauth_handler())
@@ -84,9 +90,11 @@ impl ServerBuilder {
             .nest("/v1/permissions", setup_permission_handler())
             .nest("/v1/roles", setup_role_routes(app_state.clone()))
             .nest("/v1/auth", setup_auth_routes(app_state.clone()))
-            .nest("/v1/super", setup_super_handler(app_state.clone()))
+            //.nest("/v1/super", setup_super_handler(app_state.clone()))
             .nest("/v1/projects", setup_project_routes(app_state.clone()))
             .nest("/v1/user", setup_user_routes(app_state.clone()))
+            .nest("/v1/stripe", setup_stripe_routes())
+            .nest("/v1/billing", setup_billing_routes(app_state.clone()))
     }
 
     fn setup_cors(&self) -> CorsLayer {

@@ -4,19 +4,17 @@ use crate::infra::{
     config::AppConfig,
     rbac::Rbac,
     repositories::{
-        pg_oauth_provider::PgOauthProviderRepository, pg_role_repo::PgRoleRepository,
-        pg_user_repo::PgUserRepository, pg_user_session::PgUserSessionRepository,
-        pg_project_repo::PgProjectRepository,
-        redis_repo_impl::RedisRepositoryImpl,
+        pg_billing_repo::PgBillingRepository, pg_oauth_provider::PgOauthProviderRepository, pg_project_repo::PgProjectRepository, pg_role_repo::PgRoleRepository, pg_user_repo::PgUserRepository, pg_user_session::PgUserSessionRepository, redis_repo_impl::RedisRepositoryImpl
     },
     utils::{google_jwt::GoogleJwtMaker, jwt_maker::JwtMaker},
 };
 use bb8_redis::{bb8::Pool, RedisConnectionManager};
 use sqlx::PgPool;
+use stripe::Client;
 
 use super::{
     services::{oauth_svc::OauthService, redis_svc::RedisService},
-    usecases::{auth::init::AuthUsecase, role::init::RoleUsecase, project::init::ProjectUsecase, user::init::UserUseCases},
+    usecases::{auth::init::AuthUsecase, role::init::RoleUsecase, project::init::ProjectUsecase, user::init::UserUseCases, billing::init::BillingUsecase},
 };
 
 #[derive(Clone)]
@@ -28,6 +26,7 @@ pub struct AppState {
     pub rbac: Arc<Rbac>,
     pub svc: Arc<Service>,
     pub uc: Arc<Usecase>,
+    pub stripe_client: Client,
 }
 
 /* Usecases list */
@@ -37,6 +36,7 @@ pub struct Usecase {
     pub auth: Arc<AuthUsecase>,
     pub project: Arc<ProjectUsecase>,
     pub user: Arc<UserUseCases>,
+    pub billing: Arc<BillingUsecase>,
 }
 
 /* End Usecases list */
@@ -60,6 +60,7 @@ impl AppState {
         db_pool: PgPool,
         redis_pool: Pool<RedisConnectionManager>,
         rbac: Arc<Rbac>,
+        stripe_client: Client,
     ) -> Self {
         // utils or tooling
         let jwt_maker = Arc::new(JwtMaker::new(cfg.jwt_secret.clone()));
@@ -72,6 +73,7 @@ impl AppState {
         let project_repo = Arc::new(PgProjectRepository::new(db_pool.clone()));
         let user_session_repo = Arc::new(PgUserSessionRepository::new(db_pool.clone()));
         let oauth_provider_repo = Arc::new(PgOauthProviderRepository::new(db_pool.clone()));
+        let billing_repo = Arc::new(PgBillingRepository::new(db_pool.clone()));
 
         // services list
         let redis_svc = Arc::new(RedisService::new(redis_repo.clone()));
@@ -107,6 +109,10 @@ impl AppState {
                 user_repo.clone(),
                 db_pool.clone(),
             )),
+            billing: Arc::new(BillingUsecase::new(
+                billing_repo.clone(),
+                stripe_client.clone(),
+            )),
         });
 
         Self {
@@ -117,6 +123,7 @@ impl AppState {
             rbac,
             svc,
             uc,
+            stripe_client
         }
     }
 }
