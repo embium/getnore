@@ -1,0 +1,43 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_oauth_providers (id, user_id, provider, provider_user_id) VALUES ($1, $2, $3, $4) RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "provider",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "provider_user_id",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1d33dd488c842a4ff4a62009457a30873e35fd83a0ef0a39766a6dfc997a6dcb"
+}
