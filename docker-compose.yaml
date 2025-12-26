@@ -2,11 +2,9 @@
 # For a production file see: README.md
 
 services:
-
   app:
     build: .
     env_file: .env
     restart: unless-stopped
     ports:
       - 8080:8000
-Irc796hX4EDa
