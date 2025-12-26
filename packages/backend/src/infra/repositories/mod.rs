@@ -4,4 +4,3 @@ pub mod pg_user_repo;
 pub mod pg_user_session;
 pub mod pg_project_repo;
 pub mod redis_repo_impl;
-pub mod pg_billing_repo;

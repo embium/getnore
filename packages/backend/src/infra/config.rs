@@ -35,9 +35,6 @@ pub struct AppConfig {
     #[envconfig(from = "SUPER_KEY")]
     pub super_key: String,
 
-    #[envconfig(from = "STRIPE_SECRET_KEY")]
-    pub stripe_secret_key: String,
-
-    #[envconfig(from = "STRIPE_WEBHOOK_SECRET")]
-    pub stripe_webhook_secret: String,
+    #[envconfig(from = "COOKIE_DOMAIN", default = "")]
+    pub cookie_domain: String,
 }

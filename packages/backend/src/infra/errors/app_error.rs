@@ -90,9 +90,6 @@ pub enum AppError {
 
     #[error("Access denied. You do not have permission to perform this action.")]
     Forbidden,
-
-    #[error("Stripe session has no URL")]
-    StripeError(#[from] stripe::StripeError),
 }
 
 impl IntoResponse for AppError {
@@ -190,26 +187,12 @@ impl IntoResponse for AppError {
                 "forbidden".to_string(),
                 "Access denied. You do not have permission to perform this action.".to_string(),
             ),
-            AppError::StripeError(err) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "stripe_error".to_string(),
-                format!("Stripe payment error: {}", err),
-                //"Stripe payment error. Please try again later.".to_string()
-            ),
-            _ =>(
+            _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "internal_server_error".to_string(),
                 "An internal server error occurred. Please try again later.".to_string(),
-            )
+            ),
         };
-
-        // Log all errors for debugging
-        tracing::error!(
-            "AppError: {} | Status: {} | Code: {}",
-            message,
-            status.as_u16(),
-            error_code
-        );
 
         let body = Json(json!({
             "error_code": error_code,
